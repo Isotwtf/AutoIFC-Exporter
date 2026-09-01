@@ -20,19 +20,18 @@ Flow
     an output folder
 3.  Export each view to its own IFC file,       -> dt_common.ifc_exporter
     continuing past individual failures
-4.  Print an on-screen summary table            -> dt_common.report
+4.  Show a branded success/failure popup        -> dt_common.ui.result_window
 """
 from pyrevit import forms, script, revit
 
 from dt_common.view_utils import get_generated_category_views
 from dt_common.ifc_exporter import IFCCategoryExporter
-from dt_common.report import print_summary_table
 from dt_common.path_utils import ensure_folder_exists
 from dt_common.ui.export_ifc_window import show_export_configuration
+from dt_common.ui.result_window import show_result
 
 doc = revit.doc
 logger = script.get_logger()
-output = script.get_output()
 
 
 def main():
@@ -99,28 +98,31 @@ def main():
         pb.update_progress(total, total)
 
     # ------------------------------------------------------------------
-    # 4. Summary: printed to the pyRevit output window only -- no CSV
-    #    file is written to the output folder.
+    # 4. Branded success/failure popup -- no on-screen table, no CSV
+    #    file. Full per-category detail (success or failure) is still
+    #    always in the pyRevit log if you need to dig further.
     # ------------------------------------------------------------------
     if not results:
         forms.alert("No categories were exported.")
         script.exit()
 
-    print_summary_table(output, results)
-
-    failed_count = sum(1 for r in results if not r.success)
-    if failed_count:
-        forms.alert(
-            "Export finished with {} failure(s) out of {}.\n\n"
-            "See the summary table for details.".format(
-                failed_count, len(results)
+    failed = [r for r in results if not r.success]
+    if failed:
+        failure_lines = "\n".join(
+            "- {}: {}".format(r.category_name, r.message) for r in failed
+        )
+        show_result(
+            success=False,
+            title="Export Finished with Failures",
+            message="{} of {} categories failed:\n{}".format(
+                len(failed), len(results), failure_lines
             ),
-            title="Export IFC by Category",
         )
     else:
-        forms.alert(
-            "Exported {} IFC file(s) successfully.".format(len(results)),
-            title="Export IFC by Category",
+        show_result(
+            success=True,
+            title="Export Complete",
+            message="Exported {} IFC file(s) successfully.".format(len(results)),
         )
 
 

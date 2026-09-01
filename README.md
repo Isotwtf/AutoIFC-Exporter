@@ -40,8 +40,8 @@ The export setup itself is configured through **Revit's own native
 Detail, Geographic Reference — the exact same dialog behind File >
 Export > IFC), so you get full control without a separate settings
 system to learn. Failures on individual categories don't stop the
-batch, and an on-screen summary table shows category, file name,
-success/failure, and duration for every export.
+batch, and a branded completion popup summarizes the result (with a
+per-category breakdown if anything failed).
 
 ---
 
@@ -106,7 +106,7 @@ Then reload pyRevit (pyRevit tab → Reload, or just restart Revit).
    export, click **Configure Settings...** to review/tune the IFC
    export setup in Revit's native editor, choose an output folder,
    then **Export Selected**.
-3. Check the on-screen summary table for per-category results.
+3. A popup confirms success, or lists which categories failed and why.
 
 ---
 

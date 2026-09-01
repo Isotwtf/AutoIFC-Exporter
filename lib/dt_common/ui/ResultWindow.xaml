@@ -1,0 +1,97 @@
+<Window xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Export IFC by Category"
+        Width="460"
+        MinWidth="420"
+        SizeToContent="Height"
+        WindowStartupLocation="CenterScreen"
+        Background="#FFFFFF"
+        FontFamily="Segoe UI"
+        ResizeMode="NoResize">
+
+    <Window.Resources>
+        <SolidColorBrush x:Key="AccentBrush" Color="#00B8D9"/>
+        <SolidColorBrush x:Key="AccentHoverBrush" Color="#00A6C4"/>
+        <SolidColorBrush x:Key="HeaderBrush" Color="#101820"/>
+        <SolidColorBrush x:Key="TextPrimaryBrush" Color="#1A1F26"/>
+        <SolidColorBrush x:Key="TextSecondaryBrush" Color="#6B7280"/>
+        <SolidColorBrush x:Key="BorderBrush2" Color="#E2E5EA"/>
+        <SolidColorBrush x:Key="SuccessBrush" Color="#2ECC71"/>
+        <SolidColorBrush x:Key="DangerBrush" Color="#E5484D"/>
+
+        <Style x:Key="PrimaryButton" TargetType="Button">
+            <Setter Property="Background" Value="{StaticResource AccentBrush}"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="Padding" Value="18,9"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}" CornerRadius="4" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="{StaticResource AccentHoverBrush}"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+    </Window.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Header -->
+        <Border Grid.Row="0" Background="{StaticResource HeaderBrush}" Padding="28,18">
+            <StackPanel Orientation="Horizontal">
+                <TextBlock Text="AUTOIFC" Foreground="{StaticResource AccentBrush}"
+                           FontSize="11" FontWeight="Bold" VerticalAlignment="Center"/>
+                <TextBlock Text="  ·  by Jayson Allosada" Foreground="#7A8796"
+                           FontSize="11" VerticalAlignment="Center"/>
+            </StackPanel>
+        </Border>
+
+        <!-- Body -->
+        <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="28,26,28,26" VerticalAlignment="Center">
+            <Grid Width="48" Height="48" Margin="0,0,18,0" VerticalAlignment="Top">
+                <Ellipse x:Name="iconCircleSuccess" Fill="{StaticResource SuccessBrush}" Visibility="Collapsed"/>
+                <Path x:Name="iconCheckPath" Stroke="White" StrokeThickness="3.5"
+                      StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"
+                      Data="M 14,25 L 21,32 L 35,16" Visibility="Collapsed"/>
+
+                <Ellipse x:Name="iconCircleFail" Fill="{StaticResource DangerBrush}" Visibility="Collapsed"/>
+                <Path x:Name="iconXPath1" Stroke="White" StrokeThickness="3.5" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
+                      Data="M 16,16 L 32,32" Visibility="Collapsed"/>
+                <Path x:Name="iconXPath2" Stroke="White" StrokeThickness="3.5" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
+                      Data="M 32,16 L 16,32" Visibility="Collapsed"/>
+            </Grid>
+            <StackPanel VerticalAlignment="Center">
+                <TextBlock x:Name="lblTitle" Text="Export Complete" FontSize="17" FontWeight="SemiBold"
+                           Foreground="{StaticResource TextPrimaryBrush}"/>
+                <TextBlock x:Name="lblMessage" Text="" FontSize="13" Foreground="{StaticResource TextSecondaryBrush}"
+                           Margin="0,6,0,0" TextWrapping="Wrap" MaxWidth="330"/>
+            </StackPanel>
+        </StackPanel>
+
+        <!-- Footer -->
+        <Border Grid.Row="2" BorderBrush="{StaticResource BorderBrush2}" BorderThickness="0,1,0,0" Padding="28,16">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <Button x:Name="btnOk" Grid.Column="1" Content="OK" Style="{StaticResource PrimaryButton}" Width="90"/>
+            </Grid>
+        </Border>
+    </Grid>
+</Window>
