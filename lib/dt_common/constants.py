@@ -13,10 +13,6 @@ views are identified.
 # detects its input views by this prefix.
 DT_VIEW_PREFIX = "Omniverse_"
 
-# Sub-folder (inside the user-selected output folder) where the
-# per-run summary report is written.
-REPORT_SUBFOLDER = "_ExportReports"
-
 # Revit's CategoryType.Model flag covers more than physical building
 # elements -- it also includes administrative/reference categories
 # such as Sheets or Project Information, and a few categories (RVT

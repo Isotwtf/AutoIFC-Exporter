@@ -20,13 +20,13 @@ Flow
     an output folder
 3.  Export each view to its own IFC file,       -> dt_common.ifc_exporter
     continuing past individual failures
-4.  Print + save a summary report               -> dt_common.report
+4.  Print an on-screen summary table            -> dt_common.report
 """
 from pyrevit import forms, script, revit
 
 from dt_common.view_utils import get_generated_category_views
 from dt_common.ifc_exporter import IFCCategoryExporter
-from dt_common.report import write_csv_report, print_summary_table
+from dt_common.report import print_summary_table
 from dt_common.path_utils import ensure_folder_exists
 from dt_common.ui.export_ifc_window import show_export_configuration
 
@@ -99,9 +99,8 @@ def main():
         pb.update_progress(total, total)
 
     # ------------------------------------------------------------------
-    # 4. Summary report: printed to the pyRevit output window and saved
-    #    as CSV next to the exported files for audit / re-import into
-    #    other tooling.
+    # 4. Summary: printed to the pyRevit output window only -- no CSV
+    #    file is written to the output folder.
     # ------------------------------------------------------------------
     if not results:
         forms.alert("No categories were exported.")
@@ -109,24 +108,18 @@ def main():
 
     print_summary_table(output, results)
 
-    from datetime import datetime
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    report_path = write_csv_report(results, output_folder, timestamp)
-
     failed_count = sum(1 for r in results if not r.success)
     if failed_count:
         forms.alert(
             "Export finished with {} failure(s) out of {}.\n\n"
-            "See the report for details:\n{}".format(
-                failed_count, len(results), report_path
+            "See the summary table for details.".format(
+                failed_count, len(results)
             ),
             title="Export IFC by Category",
         )
     else:
         forms.alert(
-            "Exported {} IFC file(s) successfully.\n\nReport:\n{}".format(
-                len(results), report_path
-            ),
+            "Exported {} IFC file(s) successfully.".format(len(results)),
             title="Export IFC by Category",
         )
 

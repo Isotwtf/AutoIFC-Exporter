@@ -42,21 +42,3 @@ def ensure_folder_exists(folder_path):
     if folder_path and not os.path.isdir(folder_path):
         os.makedirs(folder_path)
     return folder_path
-
-
-def unique_path(folder_path, file_name):
-    """
-    Return a path guaranteed not to collide with an existing file by
-    appending " (1)", " (2)", ... before the extension if needed.
-    """
-    candidate = os.path.join(folder_path, file_name)
-    if not os.path.exists(candidate):
-        return candidate
-
-    base, ext = os.path.splitext(file_name)
-    index = 1
-    while True:
-        candidate = os.path.join(folder_path, "{}_{}{}".format(base, index, ext))
-        if not os.path.exists(candidate):
-            return candidate
-        index += 1
