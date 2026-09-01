@@ -1,0 +1,15 @@
+# Python / IronPython bytecode caches
+__pycache__/
+*.pyc
+*.pyo
+
+# pyRevit runtime/debug artifacts
+*.pyRevitCache/
+
+# OS junk
+Thumbs.db
+.DS_Store
+
+# Editor artifacts
+.vscode/
+*.swp
