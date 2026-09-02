@@ -17,10 +17,11 @@ Two tools, both on the **Export** tab in Revit's ribbon:
 ### Create Views by Category
 
 Generates one isolated 3D view per selected Revit category (Ducts,
-Duct Fittings, Electrical Equipment, etc.). Each view shows only that
-category's elements — everything else, including linked models, is
-hidden. Views are named `Omniverse_<Category>` so the export tool can
-find them automatically.
+Duct Fittings, Electrical Equipment, etc.), named after the category
+itself. Each view shows only that category's elements — everything
+else, including linked models, is hidden. Each view is also tagged
+(via Extensible Storage, invisible to you) so the export tool can find
+it automatically regardless of what it's named.
 
 The category picker only lists categories that actually have elements
 placed in the current model (not Revit's full ~300 built-in category
@@ -30,8 +31,8 @@ don't belong in an isolated 3D view.
 
 ### Export IFC by Category
 
-Batch-exports every generated `Omniverse_*` view to its own IFC file —
-one file per category, named after the category (e.g. `Ducts.ifc`).
+Batch-exports every generated category view to its own IFC file — one
+file per category, named after the category (e.g. `Ducts.ifc`).
 Re-running the export overwrites the same file rather than creating
 duplicates, so it's safe to re-run as the model changes.
 
@@ -111,6 +112,15 @@ Then reload pyRevit (pyRevit tab → Reload, or just restart Revit).
 ---
 
 ## Troubleshooting
+
+**"Export IFC by Category" says no generated views were found, but I
+already made some.** Generated views are identified by an Extensible
+Storage tag, not by name. Views created with an older version of this
+extension (back when they were auto-named `Omniverse_<Category>`)
+don't have that tag and won't be picked up. Re-run "Create Views by
+Category" for the categories you need — it'll create fresh, correctly
+tagged views (delete the old untagged `Omniverse_*` ones afterward to
+avoid duplicates in your Project Browser).
 
 **"Only generic IFC versions are shown, not my project's real
 setups."** Revit only loads the component that stores named IFC

@@ -3,19 +3,19 @@
 Create one 3D view per selected category.
 Each view will show only the chosen category and its subcategories.
 
-View names use the DT_VIEW_PREFIX from dt_common.constants so the
-"Export IFC by Category" tool can find these views later purely by
-name -- no extensible storage or shared state needed between the two
-tools.
+Views are named after the category itself (e.g. "Ducts"). The
+"Export IFC by Category" tool finds these views afterward via an
+Extensible Storage tag (dt_common.view_tag), not by name -- so the
+view name is free to be exactly the category name with no prefix.
 """
 from pyrevit import forms, script, revit
 from Autodesk.Revit.DB import *
 import traceback
 
-from dt_common.constants import DT_VIEW_PREFIX
 from dt_common.path_utils import make_safe_token
 from dt_common.category_utils import get_populated_model_categories
 from dt_common.ui.create_views_window import show_category_selection
+from dt_common.view_tag import tag_view_with_category
 
 doc = revit.doc
 
@@ -55,7 +55,7 @@ created_views = []
 
 
 def make_view_name(category_name):
-    return "{}{}".format(DT_VIEW_PREFIX, make_safe_token(category_name))
+    return make_safe_token(category_name)
 
 
 # 4. Create one view per selected category
@@ -91,6 +91,11 @@ for sel_name in selected_names:
             idx += 1
 
         view.Name = unique_name
+
+        # Tag with the exact category name (not the sanitized view
+        # name) so "Export IFC by Category" can find and label this
+        # view correctly regardless of what it's named.
+        tag_view_with_category(view, cat.Name)
 
         # Make sure a view template doesn't override visibility settings
         try:

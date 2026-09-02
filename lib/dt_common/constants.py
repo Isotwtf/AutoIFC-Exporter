@@ -1,17 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 Constants shared across the DigitalTwin extension.
-
-Keeping the view-name prefix in one place means the "create views" tool
-and the "export IFC" tool can never drift out of sync on how generated
-views are identified.
 """
-
-# Every view created by the "Create Views by Category" tool is named
-# "Omniverse_<SafeCategoryName>" (optionally with a "_1", "_2", ...
-# suffix to keep names unique). The "Export IFC by Category" tool
-# detects its input views by this prefix.
-DT_VIEW_PREFIX = "Omniverse_"
 
 # Revit's CategoryType.Model flag covers more than physical building
 # elements -- it also includes administrative/reference categories
