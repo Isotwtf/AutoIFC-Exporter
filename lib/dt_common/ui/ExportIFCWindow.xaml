@@ -9,13 +9,13 @@
         ResizeMode="CanResize">
 
     <Window.Resources>
-        <SolidColorBrush x:Key="AccentBrush" Color="#00B8D9"/>
-        <SolidColorBrush x:Key="AccentHoverBrush" Color="#00A6C4"/>
-        <SolidColorBrush x:Key="HeaderBrush" Color="#101820"/>
-        <SolidColorBrush x:Key="TextPrimaryBrush" Color="#1A1F26"/>
-        <SolidColorBrush x:Key="TextSecondaryBrush" Color="#6B7280"/>
-        <SolidColorBrush x:Key="BorderBrush2" Color="#E2E5EA"/>
-        <SolidColorBrush x:Key="PanelBrush" Color="#F7F9FC"/>
+        <SolidColorBrush x:Key="AccentBrush" Color="#6FCF97"/>
+        <SolidColorBrush x:Key="AccentHoverBrush" Color="#56BE82"/>
+        <SolidColorBrush x:Key="HeaderBrush" Color="#16261D"/>
+        <SolidColorBrush x:Key="TextPrimaryBrush" Color="#1C2620"/>
+        <SolidColorBrush x:Key="TextSecondaryBrush" Color="#5F7568"/>
+        <SolidColorBrush x:Key="BorderBrush2" Color="#D7EAE0"/>
+        <SolidColorBrush x:Key="PanelBrush" Color="#EFFBF4"/>
 
         <Style x:Key="PrimaryButton" TargetType="Button">
             <Setter Property="Background" Value="{StaticResource AccentBrush}"/>
@@ -120,13 +120,13 @@
                 <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
                     <TextBlock Text="AUTOIFC" Foreground="{StaticResource AccentBrush}"
                                FontSize="11" FontWeight="Bold"/>
-                    <TextBlock Text="  ·  by Jayson Allosada" Foreground="#7A8796"
+                    <TextBlock Text="  ·  by Jayson Allosada" Foreground="#7C9186"
                                FontSize="11" VerticalAlignment="Center"/>
                 </StackPanel>
                 <TextBlock Text="Export IFC by Category" Foreground="White"
                            FontSize="20" FontWeight="SemiBold"/>
                 <TextBlock Text="Batch-export generated category views to individual IFC files"
-                           Foreground="#A9B4BE" FontSize="12" Margin="0,4,0,0"/>
+                           Foreground="#AEC2B4" FontSize="12" Margin="0,4,0,0"/>
             </StackPanel>
         </Border>
 

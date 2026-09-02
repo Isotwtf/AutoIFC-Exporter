@@ -10,13 +10,13 @@
         ResizeMode="NoResize">
 
     <Window.Resources>
-        <SolidColorBrush x:Key="AccentBrush" Color="#00B8D9"/>
-        <SolidColorBrush x:Key="AccentHoverBrush" Color="#00A6C4"/>
-        <SolidColorBrush x:Key="HeaderBrush" Color="#101820"/>
-        <SolidColorBrush x:Key="TextPrimaryBrush" Color="#1A1F26"/>
-        <SolidColorBrush x:Key="TextSecondaryBrush" Color="#6B7280"/>
-        <SolidColorBrush x:Key="BorderBrush2" Color="#E2E5EA"/>
-        <SolidColorBrush x:Key="SuccessBrush" Color="#2ECC71"/>
+        <SolidColorBrush x:Key="AccentBrush" Color="#6FCF97"/>
+        <SolidColorBrush x:Key="AccentHoverBrush" Color="#56BE82"/>
+        <SolidColorBrush x:Key="HeaderBrush" Color="#16261D"/>
+        <SolidColorBrush x:Key="TextPrimaryBrush" Color="#1C2620"/>
+        <SolidColorBrush x:Key="TextSecondaryBrush" Color="#5F7568"/>
+        <SolidColorBrush x:Key="BorderBrush2" Color="#D7EAE0"/>
+        <SolidColorBrush x:Key="SuccessBrush" Color="#4FAE7C"/>
         <SolidColorBrush x:Key="DangerBrush" Color="#E5484D"/>
 
         <Style x:Key="PrimaryButton" TargetType="Button">
@@ -56,7 +56,7 @@
             <StackPanel Orientation="Horizontal">
                 <TextBlock Text="AUTOIFC" Foreground="{StaticResource AccentBrush}"
                            FontSize="11" FontWeight="Bold" VerticalAlignment="Center"/>
-                <TextBlock Text="  ·  by Jayson Allosada" Foreground="#7A8796"
+                <TextBlock Text="  ·  by Jayson Allosada" Foreground="#7C9186"
                            FontSize="11" VerticalAlignment="Center"/>
             </StackPanel>
         </Border>
