@@ -123,10 +123,12 @@ tagged views (delete the old untagged `Omniverse_*` ones afterward to
 avoid duplicates in your Project Browser).
 
 **"Only generic IFC versions are shown, not my project's real
-setups."** Revit only loads the component that stores named IFC
-Export Setups into memory the first time its own **File > Export >
-IFC** dialog runs in a session. Open that dialog once (you can Cancel
-out, no need to actually export), then reopen this tool.
+setups."** The tool loads Revit's IFC export component itself, so
+this shouldn't normally happen. If it does anyway (e.g. a future Revit
+update changes where that component lives on disk), the fallback is
+the same as it's always been: open **File > Export > IFC** once
+(Cancel out, no need to actually export) to load it manually, then
+reopen this tool.
 
 **A custom setup I made in another project doesn't show up here.**
 IFC Export Setups are saved per Revit file, the same as Revit's own

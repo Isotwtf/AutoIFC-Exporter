@@ -26,13 +26,18 @@ Both of those facts matter for how this module is written:
    the DLL if it loaded only after this module was first imported --
    exactly the "opened Export > IFC afterwards and it still didn't
    work" scenario.
-
-Everything here is READ-ONLY: it only inspects assemblies Revit itself
-already loaded and reads configuration objects from them. It never
-loads untrusted code, never opens a dialog, and never touches the
-document, so a failure here can only ever mean "fall back to the
-generic list below" -- it cannot destabilize Revit.
+3. Rather than requiring you to manually open File > Export > IFC once
+   per session just to get that DLL loaded, _preload_ifc_export_ui()
+   below finds and loads it ourselves, from disk, the moment this tool
+   runs -- it's the exact same file Revit's own menu command would
+   load, we're just not waiting for an unrelated menu click to trigger
+   it. This only loads a file Autodesk shipped as part of your own
+   Revit installation; it never opens a dialog, downloads anything, or
+   touches the document, so a failure here can only ever mean "fall
+   back to the generic list below" -- it cannot destabilize Revit.
 """
+import os
+
 import clr
 clr.AddReference("System")
 import System
@@ -48,6 +53,14 @@ except Exception:
 
 from Autodesk.Revit.DB import IFCExportOptions, IFCVersion
 
+
+# Cache for _find_ifc_export_ui_dll_path()'s result ONLY -- this is
+# safe to cache (unlike whether the assembly is loaded, which is what
+# get_ifc_export_setups() deliberately never caches) because the DLL's
+# location on disk is static for the life of a Revit session, whereas
+# "is it loaded yet" changes as a side effect of things the user does.
+# Avoids re-walking the entire Revit install directory on every call.
+_cached_ifc_export_ui_dll_path = None
 
 # Generic fallback list used only when Revit's native named setups
 # could not be found in this session.
@@ -78,13 +91,82 @@ class IFCSetupInfo(object):
         return self.name
 
 
+def _find_ifc_export_ui_dll_path():
+    """
+    Locate the IFC exporter UI DLL on disk without hardcoding an exact
+    file name (it has varied: Revit.IFC.Export.UI.dll historically,
+    Autodesk.IFC.Export.UI.dll on Revit 2027). We find Revit's own
+    install directory via an already-loaded core assembly (RevitAPI,
+    always present) and search it for any DLL whose name contains
+    "ifc", "export", and "ui" -- narrow enough to avoid false matches,
+    loose enough to survive a rename.
+
+    Result is cached at module level (see _cached_ifc_export_ui_dll_path)
+    since this involves walking the whole Revit install directory and
+    the answer can't change within a session.
+    """
+    global _cached_ifc_export_ui_dll_path
+    if _cached_ifc_export_ui_dll_path is not None:
+        return _cached_ifc_export_ui_dll_path
+
+    try:
+        revit_api_asm = None
+        for asm in System.AppDomain.CurrentDomain.GetAssemblies():
+            try:
+                if (asm.GetName().Name or "") == "RevitAPI":
+                    revit_api_asm = asm
+                    break
+            except Exception:
+                continue
+        if revit_api_asm is None:
+            return None
+        install_dir = os.path.dirname(revit_api_asm.Location)
+    except Exception:
+        return None
+
+    try:
+        for root, _dirs, files in os.walk(install_dir):
+            for file_name in files:
+                lower = file_name.lower()
+                if lower.endswith(".dll") and "ifc" in lower and "export" in lower and "ui" in lower:
+                    _cached_ifc_export_ui_dll_path = os.path.join(root, file_name)
+                    return _cached_ifc_export_ui_dll_path
+    except Exception:
+        return None
+    return None
+
+
+def _preload_ifc_export_ui(diagnostics):
+    """
+    Load the IFC exporter UI DLL ourselves, from disk, instead of
+    requiring you to open Revit's native File > Export > IFC once per
+    session first. Safe to call even if it's already loaded -- .NET
+    recognizes the same assembly path and reuses what's already in
+    memory rather than loading a duplicate copy.
+    """
+    dll_path = _find_ifc_export_ui_dll_path()
+    if dll_path is None:
+        diagnostics.append(
+            "Could not locate an IFC export UI DLL under the Revit install "
+            "directory to preload; falling back to whatever is already loaded."
+        )
+        return
+
+    try:
+        System.Reflection.Assembly.LoadFrom(dll_path)
+        diagnostics.append("Preloaded IFC export UI assembly from: {}".format(dll_path))
+    except Exception as ex:
+        diagnostics.append("Preloading '{}' failed: {}".format(dll_path, ex))
+
+
 def _find_configurations_map_candidates(diagnostics):
     """
     Find every assembly-hosted type literally named
     "IFCExportConfigurationsMap" across everything Revit has already
-    loaded into this process. Recent Revit versions split the old
-    single IFC exporter assembly into several (e.g. a low-level
-    "Revit.IFC.Export" engine assembly plus a dialog-facing
+    loaded into this process (after _preload_ifc_export_ui() has had a
+    chance to make sure that's not an empty set). Recent Revit versions
+    split the old single IFC exporter assembly into several (e.g. a
+    low-level "Revit.IFC.Export" engine assembly plus a dialog-facing
     "*.Export.UI" one), and more than one of them can define a type
     with this same name but a DIFFERENT API surface -- only the UI one
     tends to expose the classic dictionary-like AddSavedConfigurations
@@ -93,6 +175,8 @@ def _find_configurations_map_candidates(diagnostics):
     assemblies sorted first, and the caller tries each in turn until
     one actually works.
     """
+    _preload_ifc_export_ui(diagnostics)
+
     assemblies = list(System.AppDomain.CurrentDomain.GetAssemblies())
 
     ifc_like = []
