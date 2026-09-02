@@ -140,6 +140,16 @@ Setup editor, select the setup and click the **Export** icon (bottom
 of the setup list) to save it as a file, then in the target file click
 **Import** and pick that file.
 
+**The ribbon looks grayed out / frozen during export.** This means a
+dialog is open somewhere but not visible — Alt+Tab or check the
+taskbar. Confirmed cause: exporting with a configuration whose
+Category Mapping points at a named template (not `<In-Session
+Setup>`) can make Revit's native export engine open its own "Manage
+IFC Export Mapping Settings" window mid-export, without properly
+owning it to Revit's main window, so it can appear hidden behind it.
+This tool now auto-detects and brings any such window to the front for
+you; if you're on an older version, use Alt+Tab.
+
 **An element I expect to see is missing from the exported IFC.**
 Check which IFC version the setup uses. IFC4/IFC4.3 apply much
 stricter geometry validation than IFC2x3, and Revit's exporter will
