@@ -142,11 +142,18 @@ of the setup list) to save it as a file, then in the target file click
 
 **The ribbon looks grayed out / frozen during export, or the "Modify
 Setup" window vanishes while picking a file (e.g. Import setup...).**
-This tool now auto-detects both and fixes them for you: a hidden
-dialog Revit opens mid-export gets brought to the front automatically,
-and the Modify Setup window gets un-minimized if Windows drops it
-behind other apps while a child file picker is open. If you're on an
-older version of this tool, use Alt+Tab / check the taskbar instead.
+This means a window is open but not visible — Alt+Tab or check the
+taskbar for it; interacting with it lets everything continue normally.
+Root cause: the native windows this tool reuses (Modify Setup, and
+occasionally a "Manage IFC Export Mapping Settings" window Revit opens
+on its own mid-export) aren't owned by Revit's main window, since
+we're driving them outside Revit's normal command flow, so Windows can
+drop them behind other applications instead of keeping them on top.
+An earlier version of this tool tried to fix this automatically with a
+background thread that force-focused new windows — that caused a
+worse problem (an actual Revit hang, from cross-thread window calls
+deadlocking against a modal dialog's own message loop) and was
+reverted. Manually Alt+Tabbing is the safe way to handle this.
 
 **An element I expect to see is missing from the exported IFC.**
 Check which IFC version the setup uses. IFC4/IFC4.3 apply much

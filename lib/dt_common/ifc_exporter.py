@@ -11,7 +11,6 @@ from Autodesk.Revit.DB import Transaction
 
 from dt_common.ifc_setups import build_ifc_export_options
 from dt_common.path_utils import make_safe_filename
-from dt_common.window_watcher import HiddenDialogWatcher
 
 
 class ExportResult(object):
@@ -87,19 +86,28 @@ class IFCCategoryExporter(object):
             # transaction-safety check enforces that regardless of
             # whether those writes end up being permanent model
             # changes. Older Revit versions didn't need this.
+            # NOTE: Revit's native IFC export engine can pop up its own
+            # dialog mid-export (confirmed: "Manage IFC Export Mapping
+            # Settings" when the configuration references a named
+            # Category Mapping template) without a properly set owner
+            # window, since we're driving this outside Revit's own
+            # command flow -- it can open hidden behind the main window
+            # instead of on top. An earlier version of this code tried
+            # to fix that with a background thread that force-focused
+            # any new window belonging to our process. That's unsafe:
+            # ShowWindow/SetForegroundWindow calls made from a
+            # background thread onto a window owned by Revit's main UI
+            # thread can block waiting for that thread's message queue,
+            # and if the main thread is itself inside a nested modal
+            # loop (e.g. a native file picker) at that moment, the two
+            # threads can deadlock -- which is exactly what produced a
+            # real "Autodesk Revit is not responding" hang, not just a
+            # visibility inconvenience. Reverted; if a dialog goes
+            # hidden, Alt+Tab / check the taskbar manually.
             transaction = Transaction(self.doc, "Export IFC - {}".format(gcv.category_label))
             transaction.Start()
             try:
-                # Revit's native IFC export engine can pop up its own
-                # dialog mid-export (confirmed: "Manage IFC Export
-                # Mapping Settings" when the configuration references a
-                # named Category Mapping template) without a properly
-                # set owner window, since we're driving this outside
-                # Revit's own command flow -- it can open hidden behind
-                # the main window instead of on top. This just makes
-                # sure any such window is visible; see window_watcher.py.
-                with HiddenDialogWatcher():
-                    export_succeeded = self.doc.Export(self.output_folder, file_name, options)
+                export_succeeded = self.doc.Export(self.output_folder, file_name, options)
                 transaction.Commit()
             except Exception:
                 if transaction.HasStarted() and not transaction.HasEnded():

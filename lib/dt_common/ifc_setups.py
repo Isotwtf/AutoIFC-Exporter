@@ -50,12 +50,9 @@ try:
     clr.AddReference("WindowsBase")
     import System.Windows
     import System.Windows.Threading
-    import System.Windows.Interop
     _HAS_WPF = True
 except Exception:
     _HAS_WPF = False
-
-from dt_common.window_watcher import HiddenDialogWatcher
 
 from Autodesk.Revit.DB import IFCExportOptions, IFCVersion
 
@@ -548,23 +545,22 @@ def open_setup_editor(config_map, initial_setup_name, doc, diagnostics):
     else:
         diagnostics.append("  WPF assemblies not available -- can't intercept in-dialog exceptions.")
 
-    # This window isn't owned by Revit's main window (we constructed it
-    # directly via reflection, outside Revit's normal command flow), so
-    # opening a child file picker from inside it (e.g. "Import
-    # setup...") can cause Windows to minimize/drop THIS window behind
-    # other applications entirely. Protect it for the duration of
-    # ShowDialog() -- un-minimize on sight, without stealing focus from
-    # whatever child dialog is legitimately active. See window_watcher.py.
-    protect_hwnd = None
-    if _HAS_WPF:
-        try:
-            protect_hwnd = System.Windows.Interop.WindowInteropHelper(window).Handle
-        except Exception as ex:
-            diagnostics.append("  Could not get a window handle to protect: {}".format(ex))
-
+    # NOTE: this window isn't owned by Revit's main window (we
+    # constructed it directly via reflection, outside Revit's normal
+    # command flow), so opening a child file picker from inside it
+    # (e.g. "Import setup...") can cause Windows to minimize/drop THIS
+    # window behind other applications entirely. An earlier version of
+    # this code "fixed" that with a background thread that
+    # un-minimized it on sight. That's unsafe: Win32 window calls made
+    # from a background thread onto a window owned by Revit's main UI
+    # thread can block waiting on that thread's message queue, and if
+    # the main thread is itself inside a nested modal loop (e.g. that
+    # same file picker) at that moment, the two threads can deadlock --
+    # which produced a real "Autodesk Revit is not responding" hang,
+    # not just a visibility inconvenience. Reverted; if this window
+    # goes hidden, Alt+Tab / check the taskbar manually.
     try:
-        with HiddenDialogWatcher(protect_hwnd=protect_hwnd):
-            dialog_result = window.ShowDialog()
+        dialog_result = window.ShowDialog()
     except Exception as ex:
         diagnostics.append("Showing the native settings editor failed: {}".format(ex))
         return None
