@@ -62,7 +62,7 @@
         </Border>
 
         <!-- Body -->
-        <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="28,26,28,26" VerticalAlignment="Center">
+        <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="28,26,28,26">
             <Grid Width="48" Height="48" Margin="0,0,18,0" VerticalAlignment="Top">
                 <Ellipse x:Name="iconCircleSuccess" Fill="{StaticResource SuccessBrush}" Visibility="Collapsed"/>
                 <Path x:Name="iconCheckPath" Stroke="White" StrokeThickness="3.5"
@@ -75,11 +75,17 @@
                 <Path x:Name="iconXPath2" Stroke="White" StrokeThickness="3.5" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
                       Data="M 32,16 L 16,32" Visibility="Collapsed"/>
             </Grid>
-            <StackPanel VerticalAlignment="Center">
+            <StackPanel VerticalAlignment="Top">
                 <TextBlock x:Name="lblTitle" Text="Export Complete" FontSize="17" FontWeight="SemiBold"
                            Foreground="{StaticResource TextPrimaryBrush}"/>
-                <TextBlock x:Name="lblMessage" Text="" FontSize="13" Foreground="{StaticResource TextSecondaryBrush}"
-                           Margin="0,6,0,0" TextWrapping="Wrap" MaxWidth="330"/>
+                <!-- Capped + scrollable so hundreds of categories don't
+                     grow the window past the screen: SizeToContent
+                     only sees this ScrollViewer's MaxHeight, not the
+                     full (potentially huge) text inside it. -->
+                <ScrollViewer MaxHeight="320" VerticalScrollBarVisibility="Auto" Margin="0,6,0,0">
+                    <TextBlock x:Name="lblMessage" Text="" FontSize="13" Foreground="{StaticResource TextSecondaryBrush}"
+                               TextWrapping="Wrap" MaxWidth="330"/>
+                </ScrollViewer>
             </StackPanel>
         </StackPanel>
 

@@ -15,6 +15,7 @@ import traceback
 from dt_common.path_utils import make_safe_token
 from dt_common.category_utils import get_populated_model_categories
 from dt_common.ui.create_views_window import show_category_selection
+from dt_common.ui.result_window import show_result
 from dt_common.view_tag import tag_view_with_category
 
 doc = revit.doc
@@ -169,8 +170,19 @@ for sel_name in selected_names:
             pass
         forms.alert("Failed to create view for '{}':\n{}\n\n{}".format(sel_name, ex, traceback.format_exc()))
 
-# 5. Report results
+# 5. Report results -- branded popup with a proper checkmark on
+#    success, instead of forms.alert's generic warning triangle.
 if created_views:
-    forms.alert("Created {} view(s):\n\n{}".format(len(created_views), "\n".join(created_views)))
+    show_result(
+        success=True,
+        title="Views Created",
+        message="Created {} view(s):\n\n{}".format(
+            len(created_views), "\n".join(created_views)
+        ),
+    )
 else:
-    forms.alert("No views were created.")
+    show_result(
+        success=False,
+        title="No Views Created",
+        message="No views were created.",
+    )
