@@ -642,6 +642,61 @@ def open_setup_editor(config_map, initial_setup_name, doc, diagnostics):
         return None
 
 
+_cached_is_new_parameter_mapping_enabled = None
+
+
+def _is_new_parameter_mapping_enabled():
+    """
+    Mirrors what Revit's own native Export IFC command actually passes
+    as UpdateOptions()'s 4th argument: NOT a fixed value, but
+    !OptionsUtil.UseLegacyParameterMapping() (confirmed by reading
+    IFCCommandOverrideApplication.cs). An earlier version of this
+    module hardcoded False here on an unverified guess ("matches
+    Revit's own legacy default") -- that silently forced legacy
+    parameter mapping regardless of what Revit's native flow would
+    actually use, which can make a custom Property Mapping template
+    built for the newer mapping system export incompletely (missing
+    custom property sets / Identity Data fields) compared to the same
+    setup used through Revit's own dialog.
+
+    OptionsUtil lives in Revit.IFC.Common.Utility -- yet another
+    assembly in this ecosystem -- so we find it the same way as
+    everything else here: by type name across whatever's already
+    loaded, never by a hardcoded assembly/namespace path.
+
+    A SUCCESSFUL lookup is cached at module level, for the same reason
+    as the DLL-path cache above: once we've actually found and called
+    OptionsUtil's method, that reflects a fixed capability of the
+    assemblies already loaded this session, not something that changes
+    as a side effect of anything the user does -- and this runs once
+    per exported category, so a fresh reflection scan every time
+    doesn't scale to hundreds of them. A FAILED lookup (type/method not
+    found yet) is deliberately NOT cached, matching the "is it loaded
+    yet" lesson from elsewhere in this module: the assembly might load
+    later in the session, and locking in a premature "no" would miss
+    that.
+    """
+    global _cached_is_new_parameter_mapping_enabled
+    if _cached_is_new_parameter_mapping_enabled is not None:
+        return _cached_is_new_parameter_mapping_enabled
+
+    try:
+        options_util_type = _find_type_by_name("OptionsUtil")
+        if options_util_type is not None:
+            method = options_util_type.GetMethod(
+                "UseLegacyParameterMapping",
+                System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static,
+            )
+            if method is not None:
+                uses_legacy = method.Invoke(None, None)
+                _cached_is_new_parameter_mapping_enabled = not bool(uses_legacy)
+                return _cached_is_new_parameter_mapping_enabled
+    except Exception:
+        pass
+
+    return False
+
+
 def build_ifc_export_options(setup, filter_view, doc):
     """
     Turn an IFCSetupInfo into the Autodesk.Revit.DB.IFCExportOptions
@@ -654,17 +709,18 @@ def build_ifc_export_options(setup, filter_view, doc):
       - Newer (confirmed on Revit 2027 / Release_27.x.x): that method
         is gone, replaced by an in-place
         UpdateOptions(doc, options, filterViewId, isNewParameterMappingEnabled)
-        -- called the same way by Revit's own Export IFC command.
+        -- called the same way by Revit's own Export IFC command, with
+        isNewParameterMappingEnabled computed via
+        _is_new_parameter_mapping_enabled() above, not hardcoded.
     """
     if setup.configuration is not None:
         if hasattr(setup.configuration, "ToIFCExportOptions"):
             options = setup.configuration.ToIFCExportOptions()
         else:
             options = IFCExportOptions()
-            # False matches Revit's own legacy parameter-mapping
-            # default; flip to True to opt into the newer mapping
-            # behavior for freshly-created setups.
-            setup.configuration.UpdateOptions(doc, options, filter_view.Id, False)
+            setup.configuration.UpdateOptions(
+                doc, options, filter_view.Id, _is_new_parameter_mapping_enabled()
+            )
     else:
         options = IFCExportOptions()
         options.FileVersion = setup.ifc_version

@@ -174,6 +174,15 @@ tessellation/geometry options. Built-in setups (anything named
 `<...>`) are read-only in the editor — use the **Duplicate** icon to
 make an editable copy first if you need to change one.
 
+**Custom property sets / Identity Data fields show up when exporting
+via Revit's native dialog, but not (or only partially) through this
+tool.** Fixed: Revit's own Export IFC command doesn't use a fixed
+setting for whether to use the newer parameter-mapping system — it's
+computed dynamically per session. This tool was hardcoding that to
+"legacy mapping" on an unverified guess, which could silently drop
+custom Property Mapping fields built for the newer system. It now
+mirrors Revit's own logic instead of guessing.
+
 ---
 
 ## Project structure
