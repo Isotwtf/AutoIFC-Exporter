@@ -50,9 +50,21 @@ try:
     clr.AddReference("WindowsBase")
     import System.Windows
     import System.Windows.Threading
+    import System.Windows.Interop
     _HAS_WPF = True
 except Exception:
     _HAS_WPF = False
+
+try:
+    # AdWindows.dll ships with Revit and is already loaded in-process
+    # (Revit's own ribbon is built on it) -- ComponentManager.ApplicationWindow
+    # gives the real HWND of Revit's main application window, the
+    # standard way Revit add-ins parent their own dialogs to it.
+    clr.AddReference("AdWindows")
+    from Autodesk.Windows import ComponentManager
+    _HAS_COMPONENT_MANAGER = True
+except Exception:
+    _HAS_COMPONENT_MANAGER = False
 
 from Autodesk.Revit.DB import IFCExportOptions, IFCVersion
 
@@ -498,6 +510,26 @@ def open_setup_editor(config_map, initial_setup_name, doc, diagnostics):
     except Exception as ex:
         diagnostics.append("Could not create IFCExporterUIWindow: {}".format(ex))
         return None
+
+    # pyrevit.forms.WPFWindow (used by our own custom windows) parents
+    # itself to Revit's main window automatically, which is why THOSE
+    # never have a visibility problem. This window bypasses that (it's
+    # constructed directly via reflection, not through WPFWindow), so
+    # without an explicit Owner, Windows has no relationship between it
+    # and Revit's main window and can drop it behind other applications
+    # or fail to restore it properly. Setting Owner here is a one-time,
+    # same-thread, synchronous WPF/Win32 operation -- nothing like the
+    # background-thread window polling that was reverted for causing a
+    # deadlock; this just tells Windows the correct parent-child
+    # relationship up front, before the dialog ever opens.
+    if _HAS_WPF and _HAS_COMPONENT_MANAGER:
+        try:
+            revit_main_handle = ComponentManager.ApplicationWindow
+            if revit_main_handle:
+                System.Windows.Interop.WindowInteropHelper(window).Owner = revit_main_handle
+                diagnostics.append("  Set the native editor window's Owner to Revit's main window.")
+        except Exception as ex:
+            diagnostics.append("  Could not set the native editor window's Owner: {}".format(ex))
 
     # Button handlers inside this window run on the WPF Dispatcher, not
     # as a normal synchronous call inside our try/except below -- an
